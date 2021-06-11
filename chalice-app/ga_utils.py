@@ -3,7 +3,7 @@ import json
 from probe import Probe
 
 # Randomly generate a starting population for the GA
-def generate_initial_population(self, population_size, probe_params):
+def generate_initial_population(population_size, probe_params):
     probe_params['truncations'] = []
     probe_params['beta'] = [0,0,0,0]
     population = []
@@ -13,7 +13,7 @@ def generate_initial_population(self, population_size, probe_params):
     return population
 
 # Run a single generation of the GA
-def generate_next_population(self, population):
+def generate_next_population(population):
     population = [Probe(probe_params) for probe_params in population]
     population.sort(reverse=True)
     if len(population) <= 2:
@@ -43,3 +43,10 @@ def generate_next_population(self, population):
             child = parent_1.cross(parent_2)
         new_population.append(child)
     return [p.__dict__ for p in new_population]
+
+# Generate next hill-climbing steps
+def hill_climb(probe_list):
+    probe_list = [Probe(item) for item in probe_list]
+    probe_list.sort(reverse=True)
+    best_probe = probe_list[0]
+    return best_probe.next_iteration()

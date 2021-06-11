@@ -126,7 +126,6 @@ class Probe:
             output_probes.append(Probe(new_probe_params).__dict__)
         return output_probes
     
-    # TODO: Add pkl file
     # Determine whether the probe falls within the high-fitness design space by PCA
     def screen(self):
         probe = []

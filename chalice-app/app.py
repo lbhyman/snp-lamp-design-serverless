@@ -17,9 +17,9 @@ def generate_next_population(population):
 
 # Generate next hill-climbing steps
 @app.route('/hill_climbing_options/{probe}')
-def calculate_fitness(probe):
-    curr_probe = Probe(json.loads(probe))
-    return json.dumps(curr_probe.next_iteration())
+def hill_climb(probe_list):
+    new_list = ga.hill_climb(json.loads(probe_list))
+    return json.dumps(new_list)
 
 # Calculate probe fitness
 @app.route('/calculate_fitness/{probe}')
