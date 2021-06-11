@@ -6,17 +6,20 @@ import json
 app = Chalice(app_name='snp-lamp-design')
 
 # Generate initial GA population
-@app.route('/generate_initial_population/{pop_size}{probe_params}')
-def generate_initial_population(pop_size, probe_params):
-    return ga.generate_initial_population(int(pop_size),json.loads(probe_params))
+@app.route('/generate_initial_population/{params}')
+def generate_initial_population(params):
+    params = json.loads(params)
+    pop_size = int(params['popSize'])
+    probe_params = params['probeParams']
+    return json.dumps(ga.generate_initial_population(pop_size,probe_params))
 
 # Generate next GA population
 @app.route('/generate_next_population/{population}')
 def generate_next_population(population):
-    return ga.generate_next_population(json.loads(population))
+    return json.dumps(ga.generate_next_population(json.loads(population)))
 
 # Generate next hill-climbing steps
-@app.route('/hill_climbing_options/{probe}')
+@app.route('/hill_climbing_options/{probe_list}')
 def hill_climb(probe_list):
     new_list = ga.hill_climb(json.loads(probe_list))
     return json.dumps(new_list)
