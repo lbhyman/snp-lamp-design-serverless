@@ -1,32 +1,27 @@
 from chalice import Chalice
+from chalice import CORSConfig
 from probe import Probe
 import ga_utils as ga
+import optimizer
 import json
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning)
+warnings.filterwarnings(action='ignore', category=FutureWarning)
 
 app = Chalice(app_name='snp-lamp-design')
 
-# Generate initial GA population
-@app.route('/generate_initial_population/{params}')
-def generate_initial_population(params):
-    params = json.loads(params)
-    pop_size = int(params['popSize'])
-    probe_params = params['probeParams']
-    return json.dumps(ga.generate_initial_population(pop_size,probe_params))
+cors_config = CORSConfig(
+    allow_origin='http://localhost:3000',
+    allow_credentials=True
+)
 
-# Generate next GA population
-@app.route('/generate_next_population/{population}')
-def generate_next_population(population):
-    return json.dumps(ga.generate_next_population(json.loads(population)))
-
-# Generate next hill-climbing steps
-@app.route('/hill_climbing_options/{probe_list}')
-def hill_climb(probe_list):
-    new_list = ga.hill_climb(json.loads(probe_list))
-    return json.dumps(new_list)
-
-# Calculate probe fitness
-@app.route('/calculate_fitness/{probe}')
-def calculate_fitness(probe):
-    curr_probe = Probe(json.loads(probe))
-    curr_probe.calc_beta()
-    return json.dumps(curr_probe.__dict__)
+# Run Optimizer
+@app.route('/start_optimizer', methods=['POST'], cors=cors_config)
+def start_optimizer():
+    request = app.current_request
+    if request.method == 'POST':
+        params = json.loads(request._body)
+        pop_size = int(params['popSize'])
+        probe_params = params['probeParams']
+        output_probe = optimizer.run(pop_size, probe_params)
+        return json.dumps(output_probe)

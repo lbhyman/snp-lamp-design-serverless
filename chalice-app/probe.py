@@ -9,7 +9,7 @@ import thermo_utils as tu
 class Probe:
     # Initialize from dict object
     def __init__(self, obj):
-        self.sequences = {'non_mut_target': obj['WT'], 'mut_target': obj['SNP']}
+        self.sequences = {'WT': obj['WT'], 'SNP': obj['SNP']}
         self.minlength = obj['minlength']
         self.concentrations = obj['concentrations']
         self.params = obj['params']
@@ -20,13 +20,27 @@ class Probe:
         else:
             self.truncations = obj['truncations']
             self.id_to_sequence(self.truncations)
+            
+    def get_dict(self):
+        output = {
+            'WT': self.sequences['WT'],
+            'SNP': self.sequences['SNP'],
+            'minlength': self.minlength,
+            'mut_rate': self.mut_rate,
+            'concentrations': self.concentrations,
+            'params': self.params,
+            'beta': self.beta,
+            'truncations': self.truncations,
+            'sequences': self.sequences
+        }
+        return output
     
     # Generate random truncations from termini if no truncations are provided    
     def generate_truncations(self):
-        self.truncations = tu.generate_truncations(len(self.sequences['mut_target']),self.minlength)
+        self.truncations = tu.generate_truncations(len(self.sequences['SNP']),self.minlength)
         self.id_to_sequence(self.truncations)
         while (not self.screen()):
-            self.truncations = tu.generate_truncations(len(self.sequences['mut_target']),self.minlength)
+            self.truncations = tu.generate_truncations(len(self.sequences['SNP']),self.minlength)
             self.id_to_sequence(self.truncations)
     
     # Fitness-based sorting method for GA        
@@ -44,7 +58,7 @@ class Probe:
         return self.truncations
     
     def get_key(self):
-        return ','.join(str(elem) for elem in self.truncations)+','+self.sequences['mut_target']+','+self.sequences['non_mut_target']
+        return ','.join(str(elem) for elem in self.truncations)+','+self.sequences['SNP']+','+self.sequences['WT']
     
     def get_beta(self):
         return self.beta
@@ -54,12 +68,12 @@ class Probe:
     
     # Convert truncation representation to sequence representation    
     def id_to_sequence(self,seq_id):
-        SNP_comp = tu.reverse_complement(self.sequences['mut_target'])
+        SNP_comp = tu.reverse_complement(self.sequences['SNP'])
         self.sequences['probeF'] = tu.truncate(tu.truncate(SNP_comp,5,seq_id[0]),3,seq_id[1])
-        self.sequences['probeQ'] = tu.truncate(tu.truncate(self.sequences['mut_target'],5,seq_id[2]),3,seq_id[3])
-        WT_comp = tu.reverse_complement(self.sequences['non_mut_target'])
+        self.sequences['probeQ'] = tu.truncate(tu.truncate(self.sequences['SNP'],5,seq_id[2]),3,seq_id[3])
+        WT_comp = tu.reverse_complement(self.sequences['WT'])
         self.sequences['sink'] = tu.truncate(tu.truncate(WT_comp,5,seq_id[5]),3,seq_id[6])
-        self.sequences['sinkC'] = tu.truncate(tu.truncate(self.sequences['non_mut_target'],5,seq_id[7]),3,seq_id[8])
+        self.sequences['sinkC'] = tu.truncate(tu.truncate(self.sequences['WT'],5,seq_id[7]),3,seq_id[8])
     
     # Calculate probe fitness    
     def calc_beta(self):
@@ -97,7 +111,7 @@ class Probe:
         sink_options = [self.truncations[5:],other_probe.truncations[5:]]
         choice = rnd.choice([0,1])
         new_truncations = probe_options[choice] + sink_options[1-choice]
-        new_probe_params = self.__dict__
+        new_probe_params = self.get_dict()
         new_probe_params['truncations'] = new_truncations
         new_probe_params['beta'] = [0,0,0,0]
         child = Probe(new_probe_params)
@@ -120,16 +134,16 @@ class Probe:
                     output.append(new_truncations)
         output_probes = []
         for trunc in output:
-            new_probe_params = self.__dict__
+            new_probe_params = self.get_dict()
             new_probe_params['truncations'] = trunc
             new_probe_params['beta'] = [0,0,0,0]
-            output_probes.append(Probe(new_probe_params).__dict__)
+            output_probes.append(Probe(new_probe_params))
         return output_probes
     
     # Determine whether the probe falls within the high-fitness design space by PCA
     def screen(self):
         probe = []
-        SNP, WT, probe_seq, probe_duplex, sink_seq, sink_duplex = self.sequences['mut_target'], self.sequences['non_mut_target'], \
+        SNP, WT, probe_seq, probe_duplex, sink_seq, sink_duplex = self.sequences['SNP'], self.sequences['WT'], \
             self.sequences['probeF'], self.sequences['probeQ'], self.sequences['sink'], self.sequences['sinkC']
         tokenized = self.truncations
         # Add Tms

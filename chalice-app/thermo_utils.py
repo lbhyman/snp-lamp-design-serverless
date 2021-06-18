@@ -79,8 +79,8 @@ def get_activation(sequences, concentrations, params):
     probeQ = nu.Strand(sequences['probeQ'], name='probeQ')
     sink = nu.Strand(sequences['sink'], name='sink')
     sinkC = nu.Strand(sequences['sinkC'], name='sinkC')
-    non_mut_target = nu.Strand(sequences['non_mut_target'], name='non_mut_target')
-    mut_target = nu.Strand(sequences['mut_target'], name='mut_target')
+    non_mut_target = nu.Strand(sequences['WT'], name='WT')
+    mut_target = nu.Strand(sequences['SNP'], name='SNP')
     # Define 3 tubes: one without target (initial), one with mutated target (mut), and one with non-mutated target (non_mut)
     initial_state = nu.Tube(strands={probeF:concentrations['probeF'],probeQ:concentrations['probeQ'],
                                      sink:concentrations['sink'],sinkC:concentrations['sinkC']},
