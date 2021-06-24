@@ -1,6 +1,6 @@
 import random as rnd
 import json
-from probe import Probe
+from chalicelib.probe import Probe
 
 # Randomly generate a starting population for the GA
 def generate_initial_population(population_size, probe_params):

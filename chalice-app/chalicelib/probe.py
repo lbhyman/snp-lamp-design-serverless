@@ -2,7 +2,9 @@ import numpy as np
 import random as rnd
 import functools
 import pickle as pk
-import thermo_utils as tu
+import math as tu
+import os
+import chalicelib.thermo_utils as tu
 
 # Designates a fluorogenic probe set, including sequences and useful methods during GA and hill-climbing optimization
 @functools.total_ordering
@@ -39,9 +41,9 @@ class Probe:
     def generate_truncations(self):
         self.truncations = tu.generate_truncations(len(self.sequences['SNP']),self.minlength)
         self.id_to_sequence(self.truncations)
-        while (not self.screen()):
+        '''while (not self.screen()):
             self.truncations = tu.generate_truncations(len(self.sequences['SNP']),self.minlength)
-            self.id_to_sequence(self.truncations)
+            self.id_to_sequence(self.truncations)'''
     
     # Fitness-based sorting method for GA        
     def __lt__ (self, other):
@@ -170,7 +172,8 @@ class Probe:
         sinkC_SNP_dist = min(sinkC_3_dist,sinkC_5_dist)
         probe = probe + [probe_SNP_dist, probeC_SNP_dist, sink_SNP_dist, sinkC_SNP_dist]
         # Test if the probe falls within the high-fitness PCA region
-        pca = pk.load(open("../data/pca.pkl",'rb'))
+        filename = os.path.join(os.path.dirname(__file__), 'pca.pkl')
+        pca = pk.load(open(filename,'rb'))
         probe = np.array(probe)
         params_trans = pca.transform(probe.reshape(1,-1))
         if (params_trans[0][0] < 15 and params_trans[0][1] > -20 and params_trans[0][0] > -60 and \

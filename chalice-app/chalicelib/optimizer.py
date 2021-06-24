@@ -1,5 +1,5 @@
-from probe import Probe
-import ga_utils as ga
+from chalicelib.probe import Probe
+import chalicelib.ga_utils as ga
 
 # Genetic algorithm
 def run_GA(population_size, probe_params):

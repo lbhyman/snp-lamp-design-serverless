@@ -3,7 +3,7 @@ import math
 import random as rnd
 import nupack as nu
 # Allow nupack to use all available cores
-nu.config.parallelism = True
+#nu.config.parallelism = True
 
 # Quick, approximate Tm calculation for a DNA sequence without using nupack
 def TM(sequence):
