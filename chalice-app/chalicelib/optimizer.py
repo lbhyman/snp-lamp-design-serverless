@@ -1,44 +1,63 @@
 from chalicelib.probe import Probe
-import chalicelib.ga_utils as ga
+from chalicelib.LSH import LSH
+import os
 
-# Genetic algorithm
-def run_GA(population_size, probe_params):
-    population = ga.generate_initial_population(2**population_size, probe_params)
-    while len(population) > 1:
-        population = ga.calculate_population_fitness(population)
-        population = ga.generate_next_population(population)
-    population = ga.calculate_population_fitness(population)
-    return population
+DEFAULT_PARAMS = {
+    'WT': '',
+    'SNP': '',
+    'minlength': 6,
+    'mut_rate': 0.5,
+    'beta': [],
+    'truncations': [],
+    'params': {'temperature': 20.0, 
+              'sodium': 0.05, 
+              'magnesium': 0.008},
+    'concentrations': {'non_mut_target' : 1e-7,
+            'mut_target': 1e-7,
+            'probeF' : 1e-7,
+            'probeQ' : 1e-7,
+            'sink' : 1e-7,
+            'sinkC' : 1e-7} 
+}
 
-# Hill climbing
-def run_Hill_Climbing(population):
-    best_probe = population[0]
-    population = ga.hill_climb(best_probe)
-    population = ga.calculate_population_fitness(population)
-    population.sort(reverse=True)
-    curr_probe = population[0]
-    while curr_probe.beta[0] > best_probe.beta[0]:
-        best_probe = curr_probe
-        population = ga.hill_climb(best_probe)
-        population = ga.calculate_population_fitness(population)
-        population.sort(reverse=True)
-        curr_probe = population[0]
-    sequences = best_probe.sequences
-    return sequences
-
-# Clean up output sequences
-def handle_output(sequences):
-    if len(sequences['sinkC']) < 7:
-        sequences['sinkC'] = 'None Required'
-        if len(sequences['sink']) < 6:
-            sequences['sink'] = 'None Required'
-    return sequences
-
-# Run full optimization workflow
-def run(population_size, probe_params):
-    population = run_GA(population_size, probe_params)
-    sequences = run_Hill_Climbing(population)
-    final_sequences = handle_output(sequences)
-    print(final_sequences)
-    print('Done')
-    return final_sequences
+class Optimizer():
+    
+    def __init__(self):
+        filename = os.path.join(os.path.dirname(__file__), 'projections.txt')
+        self.LSH = LSH(4, 5, 60, filename)
+    
+    def process_input(self, item):
+        WT = item['WT']
+        SNP_base, SNP_index = None, None
+        for i in range(len(WT)):
+            if item['SNP'][i] != WT[i]:
+                SNP_base = item['SNP'][i]
+                SNP_index = i
+                break
+        return {'WT': WT, 'SNP_index': SNP_index, 'SNP_base': SNP_base}
+    
+    def optimize(self, item):
+        item = self.process_input(item)
+        results = self.LSH.get(item)
+        best_probe = None
+        for i in range(len(results)):
+            curr_params = DEFAULT_PARAMS
+            WT = item['WT']
+            SNP = WT[:item['SNP_index']] + item['SNP_base'] + WT[item['SNP_index']+1:]
+            curr_params['WT'] = WT
+            curr_params['SNP'] = SNP
+            truncs = [int(item['trunc_'+str(n)]) for n in range(1,10)]
+            curr_params['truncations'] = truncs
+            probe = Probe(curr_params)
+            beta = probe.calc_beta()
+            if best_probe == None:
+                best_probe = probe
+            elif probe.beta[0] > best_probe.beta[0]:
+                best_probe = probe
+            if beta[0] >= 1.5:
+                return probe.sequences
+            if i >= 9:
+                return best_probe.sequences
+        if best_probe != None:
+            return best_probe.sequences
+        return None
