@@ -38,15 +38,16 @@ class Optimizer():
     
     def optimize(self, item):
         item = self.process_input(item)
+        WT = item['WT']
+        SNP = WT[:item['SNP_index']] + item['SNP_base'] + WT[item['SNP_index']+1:]
         results = self.LSH.get(item)
         best_probe = None
         for i in range(len(results)):
+            result = results[i]
             curr_params = DEFAULT_PARAMS
-            WT = item['WT']
-            SNP = WT[:item['SNP_index']] + item['SNP_base'] + WT[item['SNP_index']+1:]
             curr_params['WT'] = WT
             curr_params['SNP'] = SNP
-            truncs = [int(item['trunc_'+str(n)]) for n in range(1,10)]
+            truncs = [int(result['trunc_'+str(n)]) for n in range(1,10)]
             curr_params['truncations'] = truncs
             probe = Probe(curr_params)
             beta = probe.calc_beta()

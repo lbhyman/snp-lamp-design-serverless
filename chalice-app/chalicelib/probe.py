@@ -44,8 +44,8 @@ class Probe:
         return self.beta[0] < other.beta[0]
 
     # Fitness-based sorting method for GA 
-    def __eq__ (self, other):
-        return self.beta[0] == other.beta[0]
+    #def __eq__ (self, other):
+    #    return self.beta[0] == other.beta[0]
     
     def get_sequences(self):
         return self.sequences

@@ -1,1 +1,2 @@
 chalice==1.23.0
+python-Levenshtein==0.12.1

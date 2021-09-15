@@ -20,13 +20,16 @@ def index():
 def start_optimizer():
     request = app.current_request
     if request.method == 'POST':
-        body = json.loads(request._body)
+        body = json.loads(request._body)['probeParams']
+        print(body)
         item = {
             'WT': body['WT'],
             'SNP': body['SNP']
         }
         opt = Optimizer()
         sequences = opt.optimize(item)
+        print('output:')
+        print(sequences)
         if sequences == None:
             return json.dumps({})
         return json.dumps(sequences)

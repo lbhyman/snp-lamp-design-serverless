@@ -27,7 +27,7 @@ class LSH():
     def get(self, item):
         results = []
         hash_vals = self.hash(item)
-        response = self.table.query(
+        '''response = self.table.query(
             IndexName='LSH',
             KeyConditionExpression=Key('hash_loc').eq(hash_vals[0]) & 
             (
@@ -36,11 +36,19 @@ class LSH():
                 Key('hash_3').eq(hash_vals[3]) | 
                 Key('hash_4').eq(hash_vals[4])
             )
+        )'''
+        response = self.table.query(
+            IndexName='hash_loc-index',
+            KeyConditionExpression=Key('hash_loc').eq(hash_vals[0])# & Key('hash_1').eq(hash_vals[1])
         )
         for r in response['Items']:
             curr_item = r
-            curr_item['distance'] = distance(item['WT'], r['seq'])
-            results.append(curr_item)
+            if ((curr_item['hash_1'] == hash_vals[1]) |
+                (curr_item['hash_2'] == hash_vals[2]) |
+                (curr_item['hash_3'] == hash_vals[3]) |
+                (curr_item['hash_4'] == hash_vals[4])):
+                curr_item['distance'] = distance(item['WT'], r['seq'])
+                results.append(curr_item)
         sorted_results = sorted(results, key= lambda x: x['distance'])
         return sorted_results
     
@@ -54,7 +62,7 @@ class LSH():
         table.put_item(Item=item)
     
     def load_projections(self, filename):
-        projections, curr_projection = []
+        projections, curr_projection = [], []
         infile = open(filename, 'r')
         for line in infile.readlines():
             if '>' in line:
