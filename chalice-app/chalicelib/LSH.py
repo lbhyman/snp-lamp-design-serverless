@@ -1,4 +1,4 @@
-import numpy as np
+import chalicelib.LA_utils as la
 from Levenshtein import distance
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -66,7 +66,7 @@ class LSH():
         infile = open(filename, 'r')
         for line in infile.readlines():
             if '>' in line:
-                projections.append(np.array(curr_projection))
+                projections.append(curr_projection)
                 curr_projection = []
             else:
                 line = line.strip().split(',')
@@ -89,8 +89,14 @@ class LSH():
         for i in range(len(seq)):
             output = output + BASE_ENCODINGS[seq[i]]
         output = output + [0.0]*(self.input_dim - len(output))
-        final_output = np.dot(np.array(output), projection.T)>0
-        return ''.join([str(int(o)) for o in final_output])
+        output = la.dot([output], la.transpose(projection))[0]
+        final_output = ''
+        for i in range(len(output)):
+            if output[i] > 0:
+                final_output = final_output + '1'
+            else:
+                final_output = final_output + '0'
+        return final_output
             
     def hash(self, item):
         WT, SNP_index = item['WT'], item['SNP_index']

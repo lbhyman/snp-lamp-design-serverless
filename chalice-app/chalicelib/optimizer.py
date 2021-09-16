@@ -41,24 +41,13 @@ class Optimizer():
         WT = item['WT']
         SNP = WT[:item['SNP_index']] + item['SNP_base'] + WT[item['SNP_index']+1:]
         results = self.LSH.get(item)
-        best_probe = None
-        for i in range(len(results)):
-            result = results[i]
-            curr_params = DEFAULT_PARAMS
-            curr_params['WT'] = WT
-            curr_params['SNP'] = SNP
-            truncs = [int(result['trunc_'+str(n)]) for n in range(1,10)]
-            curr_params['truncations'] = truncs
-            probe = Probe(curr_params)
-            beta = probe.calc_beta()
-            if best_probe == None:
-                best_probe = probe
-            elif probe.beta[0] > best_probe.beta[0]:
-                best_probe = probe
-            if beta[0] >= 1.5:
-                return probe.sequences
-            if i >= 9:
-                return best_probe.sequences
-        if best_probe != None:
-            return best_probe.sequences
-        return None
+        if len(results) == 0:
+            return None
+        result = results[0]
+        curr_params = DEFAULT_PARAMS
+        curr_params['WT'] = WT
+        curr_params['SNP'] = SNP
+        truncs = [int(result['trunc_'+str(n)]) for n in range(1,10)]
+        curr_params['truncations'] = truncs
+        probe = Probe(curr_params)
+        return probe.sequences

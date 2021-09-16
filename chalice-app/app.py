@@ -1,5 +1,4 @@
 from chalice import Chalice, Response, CORSConfig
-from chalicelib.probe import Probe
 from chalicelib.optimizer import Optimizer
 import json
 
