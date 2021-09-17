@@ -27,19 +27,18 @@ class Optimizer():
         self.LSH = LSH(4, 5, 60, filename)
     
     def process_input(self, item):
-        WT = item['WT']
+        WT, SNP = item['WT'].upper(), item['SNP'].upper()
         SNP_base, SNP_index = None, None
         for i in range(len(WT)):
             if item['SNP'][i] != WT[i]:
                 SNP_base = item['SNP'][i]
                 SNP_index = i
                 break
-        return {'WT': WT, 'SNP_index': SNP_index, 'SNP_base': SNP_base}
+        return {'WT': WT, 'SNP': SNP, 'SNP_index': SNP_index, 'SNP_base': SNP_base}
     
     def optimize(self, item):
         item = self.process_input(item)
-        WT = item['WT']
-        SNP = WT[:item['SNP_index']] + item['SNP_base'] + WT[item['SNP_index']+1:]
+        WT, SNP = item['WT'], item['SNP']
         results = self.LSH.get(item)
         if len(results) == 0:
             return None
